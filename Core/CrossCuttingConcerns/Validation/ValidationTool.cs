@@ -15,6 +15,7 @@ namespace Core.CrossCuttingConcerns.Validation
             if (!result.IsValid)
             {
                 throw new FluentValidation.ValidationException(result.Errors);
+
             }
         }
 
