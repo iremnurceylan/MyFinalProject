@@ -1,7 +1,9 @@
 ﻿using Business.Abstract;
+using Business.BusinessAspects.Autofac;
 using Business.CCS;
 using Business.Constants;
 using Business.ValidationRules.FluentValidation;
+using Core.Aspects.Autofac.Caching;
 using Core.Aspects.Autofac.Validation;
 using Core.CrossCuttingConcerns.Validation;
 using Core.Utilities.Business;
@@ -34,9 +36,11 @@ namespace Business.Concrete
             _categoryService = categoryService;
 
         }
-
+        // Claim --  İddia etmek
+        [SecuredOperation("product.add ,admin")]
         [ValidationAspect(typeof(ProductValidator))]
         // Attribute == bir metoda anlam katmaya calıstığımız yapılardır
+        [CacheRemoveAspect("IProductService.Get")]
         public IResult Add(Product product)
         {
             // Aynı isimde ürün eklenemez 
@@ -58,12 +62,13 @@ namespace Business.Concrete
 
         }
 
+        [CacheAspect] //key,value
         public IDataResult<List<Product>> GetAll()
         {
             // İş Kodları
             // GetAll tümünü listele
             // Yetkisi var mı ?
-            if (DateTime.Now.Hour == 23)
+            if (DateTime.Now.Hour == 1)
             {
                 return new ErrorDataResult<List<Product>>(Messages.MaintenanceTime);
             }
@@ -75,6 +80,7 @@ namespace Business.Concrete
             return new SuccessDataResult<List<Product>>(_productDal.GetAll(p => p.CategoryId == id));
         }
 
+        [CacheAspect]
         public IDataResult<Product> GetById(int productId)
         {
             return new SuccessDataResult<Product>(_productDal.Get(p => p.ProductId == productId));
@@ -92,10 +98,11 @@ namespace Business.Concrete
         }
 
         [ValidationAspect(typeof(ProductValidator))]
+        [CacheRemoveAspect("IProductService.Get")]
         public IResult Update(Product product)
         {
             var result = _productDal.GetAll(p => p.CategoryId == product.CategoryId).Count;
-            if (result >= 15)
+            if (result >= 10)
             {
                 return new ErrorResult(Messages.ProductCountOfCategoryError);
             }
@@ -134,6 +141,19 @@ namespace Business.Concrete
                 return new ErrorResult(Messages.CategoryLimitExceded); 
             }
             return new SuccessResult();
+        }
+       // [TransactionScopeAspect]
+        public IResult AddTransactionalTest(Product product)
+        {
+            Add(product);
+            if(product.UnitPrice < 10)
+            {
+                throw new Exception("");
+            }
+          
+            Add(product);
+            return null;
+
         }
     }
 }
