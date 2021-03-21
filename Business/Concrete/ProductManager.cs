@@ -37,12 +37,13 @@ namespace Business.Concrete
 
         }
         // Claim --  İddia etmek
-        [SecuredOperation("product.add ,admin")]
+       // [SecuredOperation("product.add ,admin")]
         [ValidationAspect(typeof(ProductValidator))]
         // Attribute == bir metoda anlam katmaya calıstığımız yapılardır
         [CacheRemoveAspect("IProductService.Get")]
         public IResult Add(Product product)
         {
+
             // Aynı isimde ürün eklenemez 
             //Eğer mevcut kategori sayısı 15i gectıyse sisteme yeni ürün eklenemez
             // İş kodları buraya yazılır
